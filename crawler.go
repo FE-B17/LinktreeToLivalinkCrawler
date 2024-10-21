@@ -39,7 +39,7 @@ func crawlLinktreeProfile(link string) (Result, error) {
 
 	// Extrahiere soziale Icon-Links
 	collector.OnHTML("a[data-testid='SocialIcon']", func(e *colly.HTMLElement) {
-		iconName := e.ChildAttr("title", "title")
+		iconName := e.ChildText("title")
 		href := e.Attr("href")
 		if iconName != "" && href != "" { // Überprüfe, ob Icon-Name und URL vorhanden sind
 			result.IconLinks[iconName] = href
