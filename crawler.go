@@ -10,7 +10,7 @@ import (
 type Result struct {
 	Links       map[string]string `json:"links"`
 	IconLinks   map[string]string `json:"icon_links"`
-	Title       string            `json:"title"`
+	WebTitle    string            `json:"title"`
 	ProfileName string            `json:"profile_name"`
 	ProfileImg  string            `json:"profile_img"`
 }
@@ -25,14 +25,14 @@ func crawlLinktreeProfile(link string) (Result, error) {
 
 	// Extrahiere den Seitentitel
 	collector.OnHTML("head > title", func(e *colly.HTMLElement) {
-		result.Title = e.Text
+		result.WebTitle = e.Text
 	})
 
 	// Extrahiere reguläre Links
 	collector.OnHTML("a[data-testid='LinkButton']", func(e *colly.HTMLElement) {
 		linkText := e.ChildText("div > p")
 		href := e.Attr("href")
-		if linkText != "" && href != "" {
+		if linkText != "" && href != "" { // Überprüfe, ob Text und URL vorhanden sind
 			result.Links[linkText] = href
 		}
 	})
@@ -41,7 +41,7 @@ func crawlLinktreeProfile(link string) (Result, error) {
 	collector.OnHTML("a[data-testid='SocialIcon']", func(e *colly.HTMLElement) {
 		iconName := e.ChildAttr("title", "title")
 		href := e.Attr("href")
-		if iconName != "" && href != "" {
+		if iconName != "" && href != "" { // Überprüfe, ob Icon-Name und URL vorhanden sind
 			result.IconLinks[iconName] = href
 		}
 	})
@@ -65,13 +65,12 @@ func crawlLinktreeProfile(link string) (Result, error) {
 	})
 
 	// Besuche die Zielseite
-	err := collector.Visit(link)
-	if err != nil {
+	if err := collector.Visit(link); err != nil {
 		return Result{}, fmt.Errorf("failed to visit %s: %w", link, err)
 	}
 
 	// Überprüfe, ob wichtige Felder gefunden wurden
-	if result.Title == "" || result.ProfileName == "" {
+	if result.WebTitle == "" || result.ProfileName == "" {
 		return Result{}, errors.New("failed to extract required profile information")
 	}
 
